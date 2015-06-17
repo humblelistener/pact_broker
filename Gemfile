@@ -1,3 +1,5 @@
 source 'https://rubygems.org'
 
-gemspec
+gem "pact_broker"
+gem "pg"
+gem "thin" # Keep, or replace with your choice of web server

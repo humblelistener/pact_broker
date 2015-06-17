@@ -1,15 +1,17 @@
-require File.dirname(__FILE__) + '/config/boot'
-require 'db'
-require 'pact_broker/api'
-require 'rack/hal_browser'
-require 'pact_broker/ui/controllers/relationships'
+require 'fileutils'
+require 'logger'
+require 'sequel'
+require 'pact_broker'
 
+# Create a real database, and set the credentials for it here
+DATABASE_CREDENTIALS = {adapter: "postgres", user: ENV['PACT_BROKER_DATABASE_USERNAME'], password: ENV['PACT_BROKER_DATABASE_PASSWORD'], host: ENV['PACT_BROKER_DATABASE_HOST'], database: ENV['PACT_BROKER_DATABASE_NAME']}
 
-use Rack::Static, :urls => ["/stylesheets", "/css", "/fonts", "/js", "/javascripts"], :root => "public"
-use Rack::HalBrowser::Redirect, :exclude => ['/diagnostic', '/trace','/index']
+app = PactBroker::App.new do | config |
+  # change these from their default values if desired
+  # config.log_dir = "./log"
+  # config.auto_migrate_db = true
+  # config.use_hal_browser = true
+  config.database_connection = Sequel.connect(DATABASE_CREDENTIALS.merge(logger: config.logger, encoding: 'utf8'))
+end
 
-run Rack::URLMap.new(
-  '/ui/relationships' => PactBroker::UI::Controllers::Relationships,
-  '/network-graph' => Rack::File.new("#{File.dirname(__FILE__)}/public/Network Graph REA.html"),
-  '/' => PactBroker::API,
-)
+run app
